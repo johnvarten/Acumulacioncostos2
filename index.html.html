@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Métodos de Acumulación de Costos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0e;
+    --cream: #f5f0e8;
+    --gold: #c8922a;
+    --gold-light: #e8b84b;
+    --rust: #b5451b;
+    --slate: #2d3a4a;
+    --sage: #4a6741;
+    --paper: #fffdf7;
+    --warm-gray: #8a7f72;
+    --accent-blue: #1e4d7b;
+    --violet: #6d3fa0;
+    --teal: #0e7490;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ── PORTADA ── */
+  .portada {
+    min-height: 100vh;
+    background: var(--slate);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 60px 40px;
+  }
+
+  .portada::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 60px, rgba(200,146,42,.06) 60px, rgba(200,146,42,.06) 61px),
+      repeating-linear-gradient(-45deg, transparent, transparent 60px, rgba(200,146,42,.04) 60px, rgba(200,146,42,.04) 61px);
+  }
+
+  .portada-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    border: 1px solid var(--gold);
+    padding: 6px 20px;
+    margin-bottom: 36px;
+    animation: fadeDown .8s ease both;
+  }
+
+  .portada-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 88px);
+    font-weight: 900;
+    color: var(--paper);
+    text-align: center;
+    line-height: 1.05;
+    max-width: 900px;
+    animation: fadeDown .8s .15s ease both;
+  }
+
+  .portada-title span { color: var(--gold); }
+
+  .portada-subtitle {
+    margin-top: 24px;
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(245,240,232,.65);
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.6;
+    animation: fadeDown .8s .3s ease both;
+  }
+
+  .portada-divider {
+    width: 80px; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    margin: 36px auto;
+    animation: scaleX .8s .45s ease both;
+    transform-origin: left;
+  }
+
+  .portada-icons {
+    display: flex; gap: 48px;
+    margin-top: 8px;
+    animation: fadeUp .8s .6s ease both;
+  }
+
+  .portada-icon-card {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: var(--paper);
+  }
+
+  .portada-icon-circle {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    border: 2px solid rgba(200,146,42,.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    background: rgba(200,146,42,.1);
+    transition: all .3s;
+  }
+  .portada-icon-card:hover .portada-icon-circle {
+    background: rgba(200,146,42,.3);
+    transform: scale(1.1);
+    border-color: var(--gold);
+  }
+
+  .portada-icon-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(245,240,232,.6);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .portada-corner {
+    position: absolute;
+    bottom: 40px; right: 50px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: rgba(245,240,232,.3);
+    letter-spacing: 2px;
+  }
+
+  /* ── SECTION WRAPPER ── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--gold-light), transparent);
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    color: var(--slate);
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .section-title span { color: var(--gold); }
+
+  /* ── INTRODUCCIÓN ── */
+  .intro-bg {
+    background: var(--paper);
+    border-top: 4px solid var(--gold);
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-top: 48px;
+    align-items: start;
+  }
+
+  .intro-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #3a3530;
+  }
+
+  .intro-highlight {
+    background: var(--slate);
+    color: var(--paper);
+    padding: 32px;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .intro-highlight::before {
+    content: '""';
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    color: var(--gold);
+    opacity: .15;
+    position: absolute;
+    top: -20px; left: 10px;
+    line-height: 1;
+  }
+
+  .intro-highlight blockquote {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    line-height: 1.5;
+    font-style: italic;
+    position: relative; z-index: 1;
+    margin-bottom: 16px;
+  }
+  .intro-highlight cite {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    font-style: normal;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .intro-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .stat-card {
+    background: white;
+    border: 1px solid rgba(200,146,42,.2);
+    padding: 24px 20px;
+    text-align: center;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s, box-shadow .25s;
+  }
+  .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.08); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--rust));
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-desc { font-size: 13px; color: var(--warm-gray); margin-top: 6px; line-height: 1.4; }
+
+  /* ── MÉTODOS PRINCIPALES ── */
+  .metodos-bg { background: var(--cream); }
+
+  .metodos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+    margin-top: 48px;
+  }
+  @media (max-width: 1000px) {
+    .metodos-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .metodo-card {
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    transition: transform .3s, box-shadow .3s;
+    position: relative;
+  }
+  .metodo-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,.12); }
+
+  .metodo-header {
+    padding: 28px 28px 20px;
+    display: flex; align-items: flex-start; gap: 18px;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+
+  .metodo-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .metodo-card.orden .metodo-icon { background: rgba(30,77,123,.1); }
+  .metodo-card.proceso .metodo-icon { background: rgba(74,103,65,.1); }
+  .metodo-card.abc .metodo-icon { background: rgba(181,69,27,.1); }
+  .metodo-card.estandar .metodo-icon { background: rgba(200,146,42,.12); }
+  .metodo-card.variable .metodo-icon { background: rgba(109,63,160,.1); }
+  .metodo-card.absorbente .metodo-icon { background: rgba(14,116,144,.1); }
+
+  .metodo-card.orden { border-top: 4px solid var(--accent-blue); }
+  .metodo-card.proceso { border-top: 4px solid var(--sage); }
+  .metodo-card.abc { border-top: 4px solid var(--rust); }
+  .metodo-card.estandar { border-top: 4px solid var(--gold); }
+  .metodo-card.variable { border-top: 4px solid var(--violet); }
+  .metodo-card.absorbente { border-top: 4px solid var(--teal); }
+
+  .metodo-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 4px;
+    display: inline-block;
+  }
+  .metodo-card.orden .metodo-tag { background: rgba(30,77,123,.1); color: var(--accent-blue); }
+  .metodo-card.proceso .metodo-tag { background: rgba(74,103,65,.1); color: var(--sage); }
+  .metodo-card.abc .metodo-tag { background: rgba(181,69,27,.1); color: var(--rust); }
+  .metodo-card.estandar .metodo-tag { background: rgba(200,146,42,.15); color: #9a6e1a; }
+  .metodo-card.variable .metodo-tag { background: rgba(109,63,160,.1); color: var(--violet); }
+  .metodo-card.absorbente .metodo-tag { background: rgba(14,116,144,.1); color: var(--teal); }
+
+  .metodo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--slate);
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  .metodo-body { padding: 24px 28px 28px; }
+
+  .metodo-def {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #4a4540;
+    margin-bottom: 20px;
+    border-left: 3px solid;
+    padding-left: 14px;
+  }
+  .metodo-card.orden .metodo-def { border-color: var(--accent-blue); }
+  .metodo-card.proceso .metodo-def { border-color: var(--sage); }
+  .metodo-card.abc .metodo-def { border-color: var(--rust); }
+  .metodo-card.estandar .metodo-def { border-color: var(--gold); }
+  .metodo-card.variable .metodo-def { border-color: var(--violet); }
+  .metodo-card.absorbente .metodo-def { border-color: var(--teal); }
+
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .feature-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; line-height: 1.5; color: #5a5550;
+  }
+  .feature-list li::before {
+    content: '▸';
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 10px;
+  }
+  .metodo-card.orden .feature-list li::before { color: var(--accent-blue); }
+  .metodo-card.proceso .feature-list li::before { color: var(--sage); }
+  .metodo-card.abc .feature-list li::before { color: var(--rust); }
+  .metodo-card.estandar .feature-list li::before { color: var(--gold); }
+  .metodo-card.variable .feature-list li::before { color: var(--violet); }
+  .metodo-card.absorbente .feature-list li::before { color: var(--teal); }
+
+  .metodo-empresas {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed rgba(0,0,0,.1);
+  }
+  .metodo-empresas-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 10px;
+  }
+  .empresa-chips {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .empresa-chip {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .metodo-card.orden .empresa-chip { border-color: rgba(30,77,123,.25); color: var(--accent-blue); background: rgba(30,77,123,.05); }
+  .metodo-card.proceso .empresa-chip { border-color: rgba(74,103,65,.25); color: var(--sage); background: rgba(74,103,65,.05); }
+  .metodo-card.abc .empresa-chip { border-color: rgba(181,69,27,.25); color: var(--rust); background: rgba(181,69,27,.05); }
+  .metodo-card.estandar .empresa-chip { border-color: rgba(200,146,42,.3); color: #9a6e1a; background: rgba(200,146,42,.07); }
+  .metodo-card.variable .empresa-chip { border-color: rgba(109,63,160,.25); color: var(--violet); background: rgba(109,63,160,.06); }
+  .metodo-card.absorbente .empresa-chip { border-color: rgba(14,116,144,.25); color: var(--teal); background: rgba(14,116,144,.06); }
+
+  /* ── COMPARATIVA VISUAL ── */
+  .compare-bg { background: var(--slate); }
+  .compare-bg .section-title { color: var(--paper); }
+  .compare-bg .section-label { color: var(--gold-light); }
+
+  .compare-table {
+    margin-top: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+
+  .compare-head {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    background: rgba(200,146,42,.15);
+    border-bottom: 2px solid rgba(200,146,42,.3);
+  }
+  .compare-head div {
+    padding: 16px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .compare-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    transition: background .2s;
+  }
+  .compare-row:hover { background: rgba(255,255,255,.04); }
+  .compare-row:last-child { border-bottom: none; }
+
+  .compare-row div {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: rgba(245,240,232,.8);
+    display: flex; align-items: center;
+    border-right: 1px solid rgba(255,255,255,.06);
+  }
+  .compare-row div:last-child { border-right: none; }
+  .compare-row .cr-label {
+    font-weight: 600;
+    color: var(--paper);
+    font-size: 14px;
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+  .dot-green { background: #4ade80; }
+  .dot-yellow { background: #fbbf24; }
+  .dot-red { background: #f87171; }
+
+  /* ── PROCESO VISUAL ── */
+  .proceso-bg { background: var(--paper); }
+
+  .proceso-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 48px;
+    position: relative;
+  }
+
+  .proceso-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .proceso-step::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 28px;
+    font-size: 22px;
+    color: var(--gold);
+    z-index: 2;
+  }
+  .proceso-step:last-child::after { display: none; }
+
+  .paso-num {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--slate);
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+    border: 3px solid var(--gold);
+    flex-shrink: 0;
+  }
+
+  .paso-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-bottom: 8px;
+  }
+
+  .paso-desc {
+    font-size: 12px;
+    color: var(--warm-gray);
+    line-height: 1.5;
+    padding: 0 8px;
+  }
+
+  .paso-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  /* ── BENEFICIOS ── */
+  .beneficios-bg { background: var(--cream); }
+
+  .beneficios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .beneficio-card {
+    background: white;
+    padding: 28px 24px;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+    border: 1px solid rgba(200,146,42,.12);
+  }
+  .beneficio-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,.09); }
+
+  .beneficio-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .beneficio-card:nth-child(1)::before { background: var(--accent-blue); }
+  .beneficio-card:nth-child(2)::before { background: var(--sage); }
+  .beneficio-card:nth-child(3)::before { background: var(--rust); }
+  .beneficio-card:nth-child(4)::before { background: var(--gold); }
+  .beneficio-card:nth-child(5)::before { background: #7c3aed; }
+  .beneficio-card:nth-child(6)::before { background: #0891b2; }
+
+  .beneficio-icon { font-size: 36px; margin-bottom: 14px; display: block; }
+  .beneficio-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-bottom: 10px;
+  }
+  .beneficio-text { font-size: 13px; color: #5a5550; line-height: 1.65; }
+
+  /* ── CONCLUSIONES ── */
+  .conclusiones-bg { background: var(--ink); }
+  .conclusiones-bg .section-title { color: var(--paper); }
+  .conclusiones-bg .section-label { color: var(--gold-light); }
+
+  .conclusiones-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 48px;
+  }
+
+  .conclusion-item {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 24px;
+    border: 1px solid rgba(200,146,42,.2);
+    border-radius: 4px;
+    background: rgba(255,255,255,.03);
+    transition: background .2s;
+  }
+  .conclusion-item:hover { background: rgba(200,146,42,.06); }
+
+  .conclusion-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(200,146,42,.25);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 48px;
+    text-align: center;
+  }
+
+  .conclusion-text {
+    font-size: 15px;
+    color: rgba(245,240,232,.8);
+    line-height: 1.7;
+  }
+  .conclusion-text strong { color: var(--gold-light); font-weight: 600; }
+
+  .conclusion-cta {
+    margin-top: 48px;
+    text-align: center;
+    padding: 40px;
+    border: 2px solid rgba(200,146,42,.3);
+    border-radius: 6px;
+    background: rgba(200,146,42,.05);
+  }
+  .conclusion-cta p {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 2.5vw, 28px);
+    color: var(--paper);
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .conclusion-cta span { color: var(--gold-light); }
+
+  /* ── REFERENCIAS ── */
+  .referencias-bg { background: var(--paper); border-bottom: 4px solid var(--gold); }
+
+  .ref-list {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    counter-reset: ref;
+  }
+  .ref-item {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 16px 20px;
+    background: var(--cream);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 4px 4px 0;
+    counter-increment: ref;
+    transition: background .2s;
+  }
+  .ref-item:hover { background: rgba(200,146,42,.06); }
+  .ref-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 28px;
+  }
+  .ref-text { font-size: 13px; line-height: 1.6; color: #4a4540; }
+  .ref-text em { color: var(--warm-gray); }
+
+  .footer-tag {
+    text-align: center;
+    padding: 40px;
+    background: var(--slate);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(245,240,232,.4);
+    text-transform: uppercase;
+  }
+  .footer-tag span { color: var(--gold); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleX {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* Observer fade-in for sections */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s, transform .7s; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── DIAGRAMA VISUAL ABC ── */
+  .abc-diagram {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .abc-layer {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    padding: 16px 0;
+    position: relative;
+  }
+  .abc-box {
+    background: var(--slate);
+    color: var(--paper);
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid rgba(200,146,42,.3);
+    min-width: 130px;
+  }
+  .abc-box strong { display: block; font-family: 'Playfair Display', serif; font-size: 16px; color: var(--gold-light); }
+  .abc-arrow { font-size: 24px; color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .intro-grid, .metodos-grid, .conclusiones-grid { grid-template-columns: 1fr; }
+    .beneficios-grid { grid-template-columns: 1fr 1fr; }
+    .proceso-flow { flex-direction: column; align-items: center; }
+    .proceso-step::after { content: '↓'; right: auto; top: auto; bottom: -18px; }
+    .compare-head, .compare-row { grid-template-columns: 1.5fr 1fr 1fr; }
+    .compare-head div:nth-child(4), .compare-head div:nth-child(5),
+    .compare-row div:nth-child(4), .compare-row div:nth-child(5) { display: none; }
+    .portada-icons { flex-wrap: wrap; justify-content: center; gap: 24px; }
+    .intro-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     PORTADA
+════════════════════════════════════════════ -->
+<section class="portada">
+  <div class="portada-badge">Costos y Presupuestos · Infografía</div>
+
+  <h1 class="portada-title">
+    Métodos de<br><span>Acumulación</span><br>de Costos
+  </h1>
+
+  <div class="portada-divider"></div>
+
+  <div class="portada-icons">
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">📋</div>
+      <span class="portada-icon-label">Por Órdenes</span>
+    </div>
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">🏭</div>
+      <span class="portada-icon-label">Por Procesos</span>
+    </div>
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">🎯</div>
+      <span class="portada-icon-label">ABC</span>
+    </div>
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">📉</div>
+      <span class="portada-icon-label">Variable</span>
+    </div>
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">🧲</div>
+      <span class="portada-icon-label">Absorbente</span>
+    </div>
+    <div class="portada-icon-card">
+      <div class="portada-icon-circle">⚖️</div>
+      <span class="portada-icon-label">Estándar</span>
+    </div>
+  </div>
+
+  <div class="portada-corner">2026 · Costos y Presupuestos · Tecnológica del Oriente</div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     INTRODUCCIÓN
+════════════════════════════════════════════ -->
+<section class="intro-bg">
+  <div class="section reveal">
+    <div class="section-label">01 · Introducción</div>
+    <h2 class="section-title">¿Qué es la <span>Acumulación de Costos?</span></h2>
+
+    <div class="intro-grid">
+      <div>
+        <p class="intro-text">
+          Los <strong>métodos básicos de acumulación de costos</strong> se refieren a los procedimientos y técnicas utilizadas por las empresas para asignar o distribuir los costos a los productos o servicios que producen.
+        </p>
+        <br>
+        <p class="intro-text">
+          Estos métodos son necesarios en la contabilidad de costos, dado que permiten <strong>determinar el costo de producción de cada unidad</strong>, ayudando a tomar decisiones sobre precios, márgenes de ganancia y eficiencia operativa.
+        </p>
+        <br>
+        <p class="intro-text">
+          Dependiendo de las características del proceso productivo, se pueden aplicar distintos métodos: el <strong>costeo por órdenes de trabajo</strong>, ideal para productos personalizados, o el <strong>costeo por procesos</strong>, utilizado en producciones masivas y estandarizadas, entre otros.
+        </p>
+      </div>
+
+      <div class="intro-highlight">
+        <blockquote>
+          "Los métodos de acumulación de costos son sistemas que permiten registrar y asignar los costos incurridos en la producción de bienes o servicios."
+        </blockquote>
+        <cite>— Tecnológica del Oriente · Costos y Presupuestos, 2024</cite>
+      </div>
+    </div>
+
+    <div class="intro-stats">
+      <div class="stat-card">
+        <div class="stat-num">6</div>
+        <div class="stat-desc">Métodos principales de acumulación de costos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-desc">Elementos del costo: MD, MOD y CIF</div>
+      </div>
+      <div class="stat-card" style="display:flex;flex-direction:column;align-items:center;">
+        <svg viewBox="0 0 80 80" width="72" height="72">
+          <!-- Donut: 5 of 6 valid for NIC2 = 300° -->
+          <circle cx="40" cy="40" r="28" fill="none" stroke="#e5ddd0" stroke-width="12"/>
+          <circle cx="40" cy="40" r="28" fill="none" stroke="var(--gold)" stroke-width="12"
+            stroke-dasharray="146.6 29.3" stroke-dashoffset="43.6"/>
+          <circle cx="40" cy="40" r="28" fill="none" stroke="var(--rust)" stroke-width="12"
+            stroke-dasharray="29.3 146.6" stroke-dashoffset="-102.6"/>
+          <text x="40" y="44" text-anchor="middle" font-size="13" font-weight="700" fill="var(--slate)" font-family="sans-serif">5/6</text>
+        </svg>
+        <div class="stat-desc" style="margin-top:4px;text-align:center;">Métodos válidos para informes externos <span style="color:var(--gold)">●</span> vs. solo interno <span style="color:var(--rust)">●</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     ELEMENTOS DEL COSTO
+════════════════════════════════════════════ -->
+<section class="proceso-bg">
+  <div class="section reveal">
+    <div class="section-label">02 · Fundamentos</div>
+    <h2 class="section-title">Los <span>3 Elementos</span> del Costo de Producción</h2>
+
+    <div class="proceso-flow">
+      <div class="proceso-step">
+        <div class="paso-icon">🌿</div>
+        <div class="paso-num">1</div>
+        <div class="paso-title">Materiales Directos (MD)</div>
+        <div class="paso-desc">Insumos físicos identificables directamente en el producto terminado. Ej: madera en muebles, tela en ropa.</div>
+      </div>
+      <div class="proceso-step">
+        <div class="paso-icon">👷</div>
+        <div class="paso-num">2</div>
+        <div class="paso-title">Mano de Obra Directa (MOD)</div>
+        <div class="paso-desc">Trabajo humano que transforma los materiales. Incluye salarios y prestaciones del personal productivo.</div>
+      </div>
+      <div class="proceso-step">
+        <div class="paso-icon">⚙️</div>
+        <div class="paso-num">3</div>
+        <div class="paso-title">Costos Indirectos de Fabricación (CIF)</div>
+        <div class="paso-desc">Costos no atribuibles directamente: servicios públicos, depreciación, mantenimiento de planta.</div>
+      </div>
+      <div class="proceso-step">
+        <div class="paso-icon">💰</div>
+        <div class="paso-num">✓</div>
+        <div class="paso-title">Costo Total</div>
+        <div class="paso-desc">La suma de los tres elementos determina el costo de producción por unidad o por lote.</div>
+      </div>
+    </div>
+
+    <!-- NIC 2 integrada -->
+    <div style="margin-top:36px;background:white;border-radius:6px;padding:20px 24px;border-left:4px solid var(--gold);display:flex;align-items:flex-start;gap:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+      <div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--gold);flex-shrink:0;line-height:1.1;">NIC 2</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--slate);margin-bottom:4px;">Norma Internacional de Contabilidad N.° 2 — Inventarios</div>
+        <div style="font-size:12px;color:var(--warm-gray);line-height:1.6;">Norma contable internacional que regula la valoración y presentación de inventarios en los estados financieros. Establece que el costo del inventario debe incluir <strong>todos</strong> los costos de fabricación (MD + MOD + CIF), razón por la cual el costeo absorbente es obligatorio para informes externos, mientras que el costeo variable solo se acepta para uso gerencial interno.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     MÉTODOS PRINCIPALES
+════════════════════════════════════════════ -->
+<section class="metodos-bg">
+  <div class="section reveal">
+    <div class="section-label">03 · Desarrollo — Presentación Gráfica</div>
+    <h2 class="section-title">Los <span>6 Métodos</span> de Acumulación de Costos</h2>
+
+    <div class="metodos-grid">
+
+      <!-- ORDEN DE TRABAJO -->
+      <div class="metodo-card orden">
+        <div class="metodo-header">
+          <div class="metodo-icon">📋</div>
+          <div>
+            <span class="metodo-tag">Método 01</span>
+            <div class="metodo-name">Costeo por Órdenes de Trabajo</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Acumula costos por pedido específico. Cada orden tiene su propia hoja de costos con materiales, mano de obra e indirectos asignados individualmente.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 60" width="100%" style="max-height:60px;">
+              <rect x="4" y="10" width="56" height="40" rx="4" fill="rgba(30,77,123,.12)" stroke="#1e4d7b" stroke-width="1.5"/>
+              <text x="32" y="34" text-anchor="middle" font-size="9" fill="#1e4d7b" font-family="sans-serif">Orden #1</text>
+              <rect x="72" y="10" width="56" height="40" rx="4" fill="rgba(30,77,123,.12)" stroke="#1e4d7b" stroke-width="1.5"/>
+              <text x="100" y="34" text-anchor="middle" font-size="9" fill="#1e4d7b" font-family="sans-serif">Orden #2</text>
+              <rect x="140" y="10" width="56" height="40" rx="4" fill="rgba(30,77,123,.12)" stroke="#1e4d7b" stroke-width="1.5"/>
+              <text x="168" y="34" text-anchor="middle" font-size="9" fill="#1e4d7b" font-family="sans-serif">Orden #3</text>
+              <text x="4" y="58" font-size="7.5" fill="#8a7f72" font-family="sans-serif">✔ Costo individual por trabajo</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Costo específico y trazable por pedido</li>
+            <li>✘ Más complejo de administrar</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🏗️ Construcción</span>
+              <span class="empresa-chip">🖨️ Imprentas</span>
+              <span class="empresa-chip">💻 Proyectos IT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROCESOS -->
+      <div class="metodo-card proceso">
+        <div class="metodo-header">
+          <div class="metodo-icon">🏭</div>
+          <div>
+            <span class="metodo-tag">Método 02</span>
+            <div class="metodo-name">Costeo por Procesos</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Los costos se acumulan por departamento o etapa productiva. Se usa en producción continua y homogénea; el costo unitario se obtiene dividiendo el total entre las unidades del período.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 60" width="100%" style="max-height:60px;">
+              <rect x="4" y="15" width="44" height="30" rx="3" fill="rgba(74,103,65,.12)" stroke="#4a6741" stroke-width="1.5"/>
+              <text x="26" y="33" text-anchor="middle" font-size="8" fill="#4a6741" font-family="sans-serif">Dpto A</text>
+              <polygon points="52,30 60,24 60,36" fill="#4a6741"/>
+              <rect x="64" y="15" width="44" height="30" rx="3" fill="rgba(74,103,65,.12)" stroke="#4a6741" stroke-width="1.5"/>
+              <text x="86" y="33" text-anchor="middle" font-size="8" fill="#4a6741" font-family="sans-serif">Dpto B</text>
+              <polygon points="112,30 120,24 120,36" fill="#4a6741"/>
+              <rect x="124" y="15" width="44" height="30" rx="3" fill="rgba(74,103,65,.2)" stroke="#4a6741" stroke-width="1.5"/>
+              <text x="146" y="33" text-anchor="middle" font-size="8" fill="#4a6741" font-family="sans-serif">Producto</text>
+              <text x="4" y="58" font-size="7.5" fill="#8a7f72" font-family="sans-serif">✔ Flujo continuo departamento a departamento</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Sencillo en producción uniforme</li>
+            <li>✘ Sin precisión por producto individual</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🍺 Bebidas</span>
+              <span class="empresa-chip">🧵 Textiles</span>
+              <span class="empresa-chip">🌾 Alimentos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABC -->
+      <div class="metodo-card abc">
+        <div class="metodo-header">
+          <div class="metodo-icon">🎯</div>
+          <div>
+            <span class="metodo-tag">Método 03</span>
+            <div class="metodo-name">Costeo ABC</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Asigna los costos indirectos según las <strong>actividades</strong> que los generan. Usa inductores (cost drivers) para distribuir los CIF con mayor precisión que los métodos tradicionales.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 64" width="100%" style="max-height:64px;">
+              <ellipse cx="100" cy="14" rx="60" ry="12" fill="rgba(181,69,27,.12)" stroke="#b5451b" stroke-width="1.5"/>
+              <text x="100" y="17" text-anchor="middle" font-size="8" fill="#b5451b" font-family="sans-serif">Recursos (CIF)</text>
+              <line x1="60" y1="26" x2="40" y2="42" stroke="#b5451b" stroke-width="1.2" stroke-dasharray="3"/>
+              <line x1="100" y1="26" x2="100" y2="42" stroke="#b5451b" stroke-width="1.2" stroke-dasharray="3"/>
+              <line x1="140" y1="26" x2="160" y2="42" stroke="#b5451b" stroke-width="1.2" stroke-dasharray="3"/>
+              <rect x="14" y="42" width="52" height="18" rx="3" fill="rgba(181,69,27,.1)" stroke="#b5451b" stroke-width="1"/>
+              <text x="40" y="54" text-anchor="middle" font-size="7.5" fill="#b5451b" font-family="sans-serif">Actividad A</text>
+              <rect x="74" y="42" width="52" height="18" rx="3" fill="rgba(181,69,27,.1)" stroke="#b5451b" stroke-width="1"/>
+              <text x="100" y="54" text-anchor="middle" font-size="7.5" fill="#b5451b" font-family="sans-serif">Actividad B</text>
+              <rect x="134" y="42" width="52" height="18" rx="3" fill="rgba(181,69,27,.1)" stroke="#b5451b" stroke-width="1"/>
+              <text x="160" y="54" text-anchor="middle" font-size="7.5" fill="#b5451b" font-family="sans-serif">Actividad C</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Alta precisión en costos indirectos</li>
+            <li>✘ Implementación compleja y costosa</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🏦 Banca</span>
+              <span class="empresa-chip">🏥 Salud</span>
+              <span class="empresa-chip">📦 Logística</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTÁNDAR -->
+      <div class="metodo-card estandar">
+        <div class="metodo-header">
+          <div class="metodo-icon">⚖️</div>
+          <div>
+            <span class="metodo-tag">Método 04</span>
+            <div class="metodo-name">Costeo Estándar</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Define costos <strong>predeterminados</strong> por elemento (materiales, MOD, CIF). Al final del período compara estándar vs. real y analiza las variaciones para controlar la eficiencia.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 60" width="100%" style="max-height:60px;">
+              <line x1="10" y1="48" x2="190" y2="48" stroke="#c8922a" stroke-width="1" stroke-dasharray="4"/>
+              <text x="12" y="44" font-size="7.5" fill="#c8922a" font-family="sans-serif">Costo estándar</text>
+              <polyline points="10,38 45,32 80,36 115,22 150,28 190,20" fill="none" stroke="#2d3a4a" stroke-width="2"/>
+              <circle cx="115" cy="22" r="3" fill="#b5451b"/>
+              <line x1="115" y1="22" x2="115" y2="48" stroke="#b5451b" stroke-width="1.2" stroke-dasharray="2"/>
+              <text x="118" y="18" font-size="7" fill="#b5451b" font-family="sans-serif">Variación</text>
+              <text x="4" y="58" font-size="7.5" fill="#8a7f72" font-family="sans-serif">Costo real vs. estándar → análisis de variaciones</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Facilita el control y la planificación</li>
+            <li>✘ Requiere actualización constante</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🚗 Automotriz</span>
+              <span class="empresa-chip">👟 Calzado</span>
+              <span class="empresa-chip">🍽️ Restaurantes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COSTEO VARIABLE -->
+      <div class="metodo-card variable">
+        <div class="metodo-header">
+          <div class="metodo-icon">📉</div>
+          <div>
+            <span class="metodo-tag">Método 05</span>
+            <div class="metodo-name">Costeo Variable</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Solo incluye los costos que <strong>varían con la producción</strong> (MD, MOD, CIF variables). Los costos fijos se cargan directamente al período como gasto, sin pasar por inventario.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 60" width="100%" style="max-height:60px;">
+              <rect x="4" y="8" width="90" height="36" rx="4" fill="rgba(109,63,160,.1)" stroke="#6d3fa0" stroke-width="1.5"/>
+              <text x="49" y="22" text-anchor="middle" font-size="8" fill="#6d3fa0" font-weight="bold" font-family="sans-serif">Costo Producto</text>
+              <text x="49" y="35" text-anchor="middle" font-size="7" fill="#6d3fa0" font-family="sans-serif">MD · MOD · CIF Var.</text>
+              <rect x="106" y="8" width="90" height="36" rx="4" fill="rgba(239,68,68,.07)" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4"/>
+              <text x="151" y="22" text-anchor="middle" font-size="8" fill="#dc2626" font-weight="bold" font-family="sans-serif">Gasto Período</text>
+              <text x="151" y="35" text-anchor="middle" font-size="7" fill="#dc2626" font-family="sans-serif">CIF Fijos</text>
+              <text x="4" y="56" font-size="7.5" fill="#8a7f72" font-family="sans-serif">CIF fijos → Estado de Resultados (no inventario)</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Útil para decisiones de corto plazo</li>
+            <li>✘ No válido para informes externos (NIC 2)</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en (uso interno)</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🏪 Retail</span>
+              <span class="empresa-chip">📡 Servicios</span>
+              <span class="empresa-chip">✈️ Aerolíneas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COSTEO ABSORBENTE -->
+      <div class="metodo-card absorbente">
+        <div class="metodo-header">
+          <div class="metodo-icon">🧲</div>
+          <div>
+            <span class="metodo-tag">Método 06</span>
+            <div class="metodo-name">Costeo Absorbente</div>
+          </div>
+        </div>
+        <div class="metodo-body">
+          <p class="metodo-def">Incluye <strong>todos</strong> los costos de fabricación en el costo del producto: variables y fijos. Es el método requerido por las normas contables internacionales para presentar estados financieros.</p>
+          <div style="margin:14px 0;">
+            <svg viewBox="0 0 200 60" width="100%" style="max-height:60px;">
+              <rect x="4" y="8" width="192" height="36" rx="4" fill="rgba(14,116,144,.08)" stroke="#0e7490" stroke-width="1.5"/>
+              <text x="100" y="22" text-anchor="middle" font-size="8" fill="#0e7490" font-weight="bold" font-family="sans-serif">Costo del Producto (inventariable)</text>
+              <text x="38" y="37" text-anchor="middle" font-size="7" fill="#0e7490" font-family="sans-serif">MD</text>
+              <text x="80" y="37" text-anchor="middle" font-size="7" fill="#0e7490" font-family="sans-serif">MOD</text>
+              <text x="126" y="37" text-anchor="middle" font-size="7" fill="#0e7490" font-family="sans-serif">CIF Var.</text>
+              <text x="170" y="37" text-anchor="middle" font-size="7" fill="#0e7490" font-weight="bold" font-family="sans-serif">CIF Fijos</text>
+              <line x1="56" y1="28" x2="56" y2="44" stroke="#0e7490" stroke-width="0.8" opacity=".4"/>
+              <line x1="104" y1="28" x2="104" y2="44" stroke="#0e7490" stroke-width="0.8" opacity=".4"/>
+              <line x1="148" y1="28" x2="148" y2="44" stroke="#0e7490" stroke-width="0.8" opacity=".4"/>
+              <text x="4" y="56" font-size="7.5" fill="#8a7f72" font-family="sans-serif">Todos los costos de fábrica van al inventario</text>
+            </svg>
+          </div>
+          <ul class="feature-list">
+            <li>✔ Obligatorio para informes externos (NIC 2)</li>
+            <li>✘ Puede distorsionar el costo si varía el volumen</li>
+          </ul>
+          <div class="metodo-empresas">
+            <div class="metodo-empresas-label">📍 Se aplica en (uso obligatorio)</div>
+            <div class="empresa-chips">
+              <span class="empresa-chip">🏭 Manufactura</span>
+              <span class="empresa-chip">🌾 Agroindustria</span>
+              <span class="empresa-chip">💊 Farmacéutica</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gráfica: Complejidad vs Precisión -->
+    <div style="margin-top:48px;background:var(--slate);border-radius:8px;padding:32px;color:var(--paper);">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold-light);margin-bottom:24px;">📊 COMPLEJIDAD VS. PRECISIÓN POR MÉTODO</div>
+      <svg viewBox="0 0 580 175" width="100%" style="display:block;">
+        <line x1="56" y1="10" x2="56" y2="135" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <line x1="56" y1="135" x2="575" y2="135" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+        <text x="12" y="76" font-size="8" fill="rgba(245,240,232,.35)" font-family="sans-serif" transform="rotate(-90,12,76)">Nivel</text>
+        <!-- Órdenes -->
+        <rect x="68" y="62" width="20" height="73" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="90" y="52" width="20" height="83" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- Procesos -->
+        <rect x="158" y="85" width="20" height="50" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="180" y="93" width="20" height="42" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- ABC -->
+        <rect x="248" y="18" width="20" height="117" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="270" y="8" width="20" height="127" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- Estándar -->
+        <rect x="338" y="68" width="20" height="67" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="360" y="55" width="20" height="80" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- Variable -->
+        <rect x="428" y="90" width="20" height="45" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="450" y="95" width="20" height="40" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- Absorbente -->
+        <rect x="518" y="83" width="20" height="52" rx="2" fill="rgba(30,77,123,.75)"/>
+        <rect x="540" y="88" width="20" height="47" rx="2" fill="var(--gold)" opacity=".85"/>
+        <!-- Etiquetas X -->
+        <text x="89" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">Órdenes</text>
+        <text x="179" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">Procesos</text>
+        <text x="269" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">ABC</text>
+        <text x="359" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">Estándar</text>
+        <text x="449" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">Variable</text>
+        <text x="539" y="150" text-anchor="middle" font-size="7.5" fill="rgba(245,240,232,.6)" font-family="sans-serif">Absorbente</text>
+        <!-- Leyenda -->
+        <rect x="57" y="163" width="10" height="7" fill="rgba(30,77,123,.75)" rx="1"/>
+        <text x="72" y="170" font-size="8" fill="rgba(245,240,232,.5)" font-family="sans-serif">Complejidad de implementación</text>
+        <rect x="240" y="163" width="10" height="7" fill="var(--gold)" opacity=".85" rx="1"/>
+        <text x="255" y="170" font-size="8" fill="rgba(245,240,232,.5)" font-family="sans-serif">Precisión del costo</text>
+      </svg>
+
+      <!-- Características rápidas por método -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:28px;">
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:#4a8fd4;margin-bottom:4px;">Órdenes</div>
+          Bajo pedido<br>Trazabilidad alta
+        </div>
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:#4a6741;margin-bottom:4px;">Procesos</div>
+          Producción continua<br>Costo por dpto.
+        </div>
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:#b5451b;margin-bottom:4px;">ABC</div>
+          Por actividades<br>Mayor exactitud
+        </div>
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--gold-light);margin-bottom:4px;">Estándar</div>
+          Predeterminado<br>Control variaciones
+        </div>
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--violet);margin-bottom:4px;">Variable</div>
+          Solo costos variables<br>Uso interno
+        </div>
+        <div style="text-align:center;font-size:11px;color:rgba(245,240,232,.7);">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--teal);margin-bottom:4px;">Absorbente</div>
+          Todos los costos<br>Norma NIC 2
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="conclusiones-bg">
+  <div class="section reveal">
+    <div class="section-label">04 · Conclusiones</div>
+    <h2 class="section-title">Conclusiones</h2>
+
+    <div class="conclusiones-grid">
+      <div class="conclusion-item">
+        <div class="conclusion-num">1</div>
+        <p class="conclusion-text">Ningún método es mejor que otro por sí solo. Todo depende del tipo de producción, la industria y qué tan detallada necesite ser la información para tomar buenas decisiones.</p>
+      </div>
+      <div class="conclusion-item">
+        <div class="conclusion-num">2</div>
+        <p class="conclusion-text">Si la empresa produce por pedidos únicos, lo más práctico es el <strong>costeo por órdenes</strong>. Si produce en masa el mismo producto, el <strong>costeo por procesos</strong> es mucho más eficiente.</p>
+      </div>
+      <div class="conclusion-item">
+        <div class="conclusion-num">3</div>
+        <p class="conclusion-text">El <strong>ABC</strong> es el más preciso para repartir los costos indirectos, especialmente cuando hay muchos productos distintos con procesos diferentes. Su dificultad está en la implementación.</p>
+      </div>
+      <div class="conclusion-item">
+        <div class="conclusion-num">4</div>
+        <p class="conclusion-text">El <strong>costeo estándar</strong> es muy valioso para el control interno: al comparar lo que se planeó gastar con lo que realmente se gastó, se detectan problemas de eficiencia a tiempo.</p>
+      </div>
+      <div class="conclusion-item">
+        <div class="conclusion-num">5</div>
+        <p class="conclusion-text">El <strong>costeo variable</strong> ayuda a entender qué tan rentable es cada unidad vendida, pero no sirve para presentar estados financieros oficiales porque no cumple con la NIC 2.</p>
+      </div>
+      <div class="conclusion-item">
+        <div class="conclusion-num">6</div>
+        <p class="conclusion-text">El <strong>costeo absorbente</strong> es el estándar para los informes externos. Al incluir todos los costos de fábrica en el inventario, ofrece una imagen financiera completa y aceptada internacionalmente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     REFERENCIAS
+════════════════════════════════════════════ -->
+<section class="referencias-bg">
+  <div class="section reveal">
+    <div class="section-label">05 · Referencias Bibliográficas</div>
+    <h2 class="section-title">Fuentes <span>Consultadas</span></h2>
+
+    <div class="ref-list">
+      <div class="ref-item">
+        <span class="ref-num">[1]</span>
+        <span class="ref-text">Tecnológica del Oriente — Institución de Educación Superior. (2026). <em>Costos y Presupuestos: Tipos de Costos</em>. Material didáctico institucional.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[2]</span>
+        <span class="ref-text">Universidad Continental — Modalidad a Distancia. (2019). <em>Sistemas de costeo</em> [video]. YouTube. Recuperado de https://youtu.be/J208yG2OZrs?si=aV-PPaOEy-yLaICS</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[3]</span>
+        <span class="ref-text">Horngren, C. T., Datar, S. M., & Rajan, M. V. (2012). <em>Contabilidad de costos: Un enfoque gerencial</em> (14.ª ed.). Pearson Education. ISBN 978-0-13-210917-8.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[4]</span>
+        <span class="ref-text">Polimeni, R. S., Fabozzi, F. J., Adelberg, A. H., & Kole, M. A. (2005). <em>Contabilidad de costos: Conceptos y aplicaciones para la toma de decisiones gerenciales</em> (3.ª ed.). McGraw-Hill Interamericana.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[5]</span>
+        <span class="ref-text">Kaplan, R. S., & Cooper, R. (1998). <em>Coste y efecto: Cómo usar el ABC, el ABM y el ABB para mejorar la gestión, los procesos y la rentabilidad</em>. Gestión 2000.</span>
+      </div>
+      <div class="ref-item">
+        <span class="ref-num">[6]</span>
+        <span class="ref-text">International Accounting Standards Board (IASB). (2003). <em>NIC 2 – Inventarios</em>. IFRS Foundation. Recuperado de https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer-tag">
+  Infografía · Métodos de Acumulación de Costos · <span>Costos y Presupuestos</span> · 2026
+</div>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
